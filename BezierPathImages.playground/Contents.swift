@@ -5,35 +5,51 @@ import UIKit
 
 //: This extension will apply a custom UIBezierPath to an instance of UIImage, returning a new image with a clipped area specified by the path.
 extension UIImage {
-    func imageByApplyingClippingBezierPath(path: UIBezierPath) -> UIImage! {
-        let frame = CGRectMake(0, 0, self.size.width, self.size.height)
+    func imageByApplyingClippingBezierPath(_ path: UIBezierPath) -> UIImage! {
+        let frame = CGRect(x: 0, y: 0, width: self.size.width, height: self.size.height)
         
         UIGraphicsBeginImageContextWithOptions(self.size, false, 0.0)
         let context = UIGraphicsGetCurrentContext()
-        CGContextSaveGState(context)
+        context?.saveGState()
         path.addClip()
-        self.drawInRect(frame)
+        self.draw(in: frame)
         
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        CGContextRestoreGState(context)
+        context?.restoreGState()
         UIGraphicsEndImageContext()
         return newImage
     }
 }
 
 //: Calculates the bezier path for a image without the bottom-right corner triangle
-func bottomRightTriangledPathInRect(rect: CGRect) -> UIBezierPath {
+func bottomRightTriangledPathInRect(_ rect: CGRect) -> UIBezierPath {
     let path = UIBezierPath()
     // initial point
-    path.moveToPoint(CGPointMake(rect.origin.x, rect.origin.y))
+    path.move(to: CGPoint(x: rect.origin.x, y: rect.origin.y))
     // make the polygon
-    path.addLineToPoint(CGPointMake(rect.origin.x, CGRectGetMaxY(rect)))
-    path.addLineToPoint(CGPointMake(CGRectGetMaxX(rect), 0.75 * CGRectGetMaxY(rect)))
-    path.addLineToPoint(CGPointMake(CGRectGetMaxX(rect), rect.origin.y))
-    path.addLineToPoint(CGPointMake(rect.origin.x, rect.origin.y))
+    path.addLine(to: CGPoint(x: rect.origin.x, y: rect.maxY))
+    path.addLine(to: CGPoint(x: rect.maxX, y: 0.75 * rect.maxY))
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.origin.y))
+    path.addLine(to: CGPoint(x: rect.origin.x, y: rect.origin.y))
     
     // close and return path
-    path.closePath()
+    path.close()
+    return path
+}
+
+//: Calculates the bezier path for a image without the bottom-right corner triangle
+func topRightTriangledPathInRect(_ rect: CGRect) -> UIBezierPath {
+    let path = UIBezierPath()
+    // initial point
+    path.move(to: CGPoint(x: rect.origin.x, y: 0.25 * rect.maxY))
+    // make the polygon
+    path.addLine(to: CGPoint(x: rect.origin.x, y: rect.maxY))
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.origin.y))
+    path.addLine(to: CGPoint(x: rect.origin.x,  y: 0.25 * rect.maxY))
+    
+    // close and return path
+    path.close()
     return path
 }
 
@@ -41,13 +57,16 @@ func bottomRightTriangledPathInRect(rect: CGRect) -> UIBezierPath {
 let image = UIImage(named: "pic1.jpg")!
 
 //: The second image has a clipping bottom-right triangle thanks to the path obtained from bottomRightTriangledPathInRect
-let frame = CGRectMake(0, 0, image.size.width, image.size.height)
-let image2 = image.imageByApplyingClippingBezierPath(bottomRightTriangledPathInRect(frame))
+let frameBottom = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+let image2 = image.imageByApplyingClippingBezierPath(bottomRightTriangledPathInRect(frameBottom))
+
+let frameTop = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+let image3 = image.imageByApplyingClippingBezierPath(topRightTriangledPathInRect(frameTop))
 
 //: The third image has a typical circle mask like the ones you can find on modern social networks.
 let minSide = min(image.size.width, image.size.height)
-let clippedFrame = CGRectMake(0.5*(image.size.width-minSide), 0.5*(image.size.height-minSide), minSide, minSide)
-let image3 = image.imageByApplyingClippingBezierPath(UIBezierPath(ovalInRect: clippedFrame))
+let clippedFrame = CGRect(x: 0.5*(image.size.width-minSide), y: 0.5*(image.size.height-minSide), width: minSide, height: minSide)
+let image4 = image.imageByApplyingClippingBezierPath(UIBezierPath(ovalIn: clippedFrame))
 
 
 

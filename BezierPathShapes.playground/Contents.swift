@@ -8,28 +8,28 @@ import UIKit
 extension UIImage {
     class func shapeImageWithBezierPath(bezierPath: UIBezierPath, fillColor: UIColor?, strokeColor: UIColor?, strokeWidth: CGFloat = 0.0) -> UIImage! {
         //: Normalize bezier path. We will apply a transform to our bezier path to ensure that it's placed at the coordinate axis. Then we can get its size.
-        bezierPath.applyTransform(CGAffineTransformMakeTranslation(-bezierPath.bounds.origin.x, -bezierPath.bounds.origin.y))
-        let size = CGSizeMake(bezierPath.bounds.size.width, bezierPath.bounds.size.height)
+        bezierPath.apply(CGAffineTransform(translationX: -bezierPath.bounds.origin.x, y: -bezierPath.bounds.origin.y))
+        let size = CGSize(width: bezierPath.bounds.size.width, height: bezierPath.bounds.size.height)
         
         //: Initialize an image context with our bezier path normalized shape and save current context
         UIGraphicsBeginImageContext(size)
-        let context = UIGraphicsGetCurrentContext()
-        CGContextSaveGState(context)
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+        context.saveGState()
         
         //: Set path
-        CGContextAddPath(context, bezierPath.CGPath)
+        context.addPath(bezierPath.cgPath)
         //: Set parameters and draw
         if strokeColor != nil {
             strokeColor!.setStroke()
-            CGContextSetLineWidth(context, strokeWidth)
-        } else { UIColor.clearColor().setStroke() }
+            context.setLineWidth(strokeWidth)
+        } else { UIColor.clear.setStroke() }
         fillColor?.setFill()
-        CGContextDrawPath(context, .FillStroke)
+        context.drawPath(using: .fillStroke)
 
         //: Get the image from the current image context
         let image = UIGraphicsGetImageFromCurrentImageContext()
         //: Restore context and close everything
-        CGContextRestoreGState(context)
+        context.restoreGState()
         UIGraphicsEndImageContext()
         //: Return image
         return image
@@ -37,23 +37,23 @@ extension UIImage {
 }
 
 //: A rectangular shape
-let rectShape = UIImage.shapeImageWithBezierPath(UIBezierPath(rect: CGRectMake(0, 0, 500, 300)), fillColor: UIColor.blueColor(), strokeColor: nil, strokeWidth: 0.0)
+let rectShape = UIImage.shapeImageWithBezierPath(bezierPath: UIBezierPath(rect: CGRect(x: 0, y: 0, width: 500, height: 300)), fillColor: UIColor.blue, strokeColor: nil, strokeWidth: 0.0)
 
 //: A circle shape
-let circleShape = UIImage.shapeImageWithBezierPath(UIBezierPath(ovalInRect: CGRectMake(0, 0, 100, 100)), fillColor: UIColor.greenColor(), strokeColor: UIColor.darkGrayColor(), strokeWidth: 1.0)
+let circleShape = UIImage.shapeImageWithBezierPath(bezierPath: UIBezierPath(ovalIn: CGRect(x: 0, y: 0, width: 100, height: 100)), fillColor: UIColor.green, strokeColor: UIColor.darkGray, strokeWidth: 1.0)
 
 //: A custom, more complex shape describing an arrow.
 let arrowPath = UIBezierPath()
-arrowPath.moveToPoint(CGPointMake(50, 0))
-arrowPath.addLineToPoint(CGPointMake(70, 25))
-arrowPath.addLineToPoint(CGPointMake(60, 25))
-arrowPath.addLineToPoint(CGPointMake(60, 75))
-arrowPath.addLineToPoint(CGPointMake(40, 75))
-arrowPath.addLineToPoint(CGPointMake(40, 25))
-arrowPath.addLineToPoint(CGPointMake(30, 25))
-arrowPath.addLineToPoint(CGPointMake(50, 0))
-arrowPath.closePath()
+arrowPath.move(to: CGPoint(x: 50, y: 0))
+arrowPath.addLine(to: CGPoint(x: 70, y: 25))
+arrowPath.addLine(to: CGPoint(x: 60, y: 25))
+arrowPath.addLine(to: CGPoint(x: 60, y: 75))
+arrowPath.addLine(to: CGPoint(x: 40, y: 75))
+arrowPath.addLine(to: CGPoint(x: 40, y: 25))
+arrowPath.addLine(to: CGPoint(x: 30, y: 25))
+arrowPath.addLine(to: CGPoint(x: 50, y: 0))
+arrowPath.close()
 
-let arrowShape = UIImage.shapeImageWithBezierPath(arrowPath, fillColor: UIColor.cyanColor(), strokeColor: UIColor.blueColor(), strokeWidth: 1.0)
+let arrowShape = UIImage.shapeImageWithBezierPath(bezierPath: arrowPath, fillColor: UIColor.cyan, strokeColor: UIColor.blue, strokeWidth: 1.0)
 
 
